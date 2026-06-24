@@ -336,7 +336,7 @@ async function renderAdmin(){
       const tH=cr.reduce((s,e)=>s+parseFloat(e.hours),0);const tA=cr.reduce((s,e)=>s+parseFloat(e.subtotal),0);
       const emps=[...new Set(cr.map(r=>r.employee_initials))].join(', ');
       const tid='tbl_'+cname.replace(/[^a-z0-9]/gi,'_');
-      html+=`<div class="client-block"><div class="client-hdr"><div><div class="client-name">${esc(cname)}</div><div class="client-meta">${emps} · ${tH.toFixed(2)} hrs · $${tA.toFixed(2)}</div></div><button class="sm" onclick="copyTbl('${tid}','${esc(cname)}','${cycleLabel}')">&#x2398; Copy for invoice</button></div>
+      html+=`<div class="client-block"><div class="client-hdr"><div><div class="client-name">${esc(cname)}</div><div class="client-meta">${emps} · ${tH.toFixed(2)} hrs · $${tA.toFixed(2)}</div></div><button class="sm" onclick="copyTbl('${tid}','${esc(cname)}','${cycleLabel}')">&#x2398; Open for invoice</button></div>
       <table class="tbl" id="${tid}"><thead><tr><th style="width:92px">Date</th><th>Task</th><th style="width:40px">Emp</th><th style="width:58px">Rate</th><th style="width:55px">Hours</th><th style="width:72px">Total</th><th style="width:28px"></th></tr></thead>
       <tbody>${cr.map(e=>`<tr><td>${e.date}</td><td style="font-size:12px">${esc(e.description)}</td><td>${e.employee_initials}</td><td>$${parseFloat(e.rate).toFixed(2)}</td><td>${parseFloat(e.hours).toFixed(2)}</td><td>$${parseFloat(e.subtotal).toFixed(2)}</td><td><button class="danger-sm" onclick="delEntry('${e.id}')">&#x2715;</button></td></tr>`).join('')}</tbody>
       <tfoot><tr class="tbl-foot"><td colspan="3" style="color:#888">Total</td><td></td><td>${tH.toFixed(2)}</td><td>$${tA.toFixed(2)}</td><td></td></tr></tfoot></table></div>`;
@@ -466,61 +466,50 @@ async function doClose(){
 
 function hideModal(){document.getElementById('confirmModal').classList.remove('open')}
 
-function copyTbl(tableId, cname, cycleLabel) {
-  const tbl = document.getElementById(tableId);
-  if (!tbl) return;
-  const rows = tbl.querySelectorAll('tbody tr');
-  let totalHours = 0, totalAmt = 0, dataRows = '';
-  rows.forEach(row => {
-    const cells = row.querySelectorAll('td');
-    if (cells.length < 6) return;
-    const date = cells[0].textContent.trim();
-    const task = cells[1].textContent.trim();
-    const emp  = cells[2].textContent.trim();
-    const rate = cells[3].textContent.trim();
-    const hrs  = cells[4].textContent.trim();
-    const tot  = cells[5].textContent.trim();
-    totalHours += parseFloat(hrs) || 0;
-    totalAmt   += parseFloat(tot.replace('$','')) || 0;
-    dataRows += `<tr>
-      <td style="border:1px solid #ccc;padding:4px 8px;font-size:11pt">${date}</td>
-      <td style="border:1px solid #ccc;padding:4px 8px;font-size:11pt;color:#1a6b6b">${task}</td>
-      <td style="border:1px solid #ccc;padding:4px 8px;font-size:11pt;text-align:center">${emp}</td>
-      <td style="border:1px solid #ccc;padding:4px 8px;font-size:11pt;text-align:right">${rate}</td>
-      <td style="border:1px solid #ccc;padding:4px 8px;font-size:11pt;text-align:right">${hrs}</td>
-      <td style="border:1px solid #ccc;padding:4px 8px;font-size:11pt;text-align:right">${tot}</td>
-    </tr>`;
+function copyTbl(tableId,cname,cycleLabel){
+  const tbl=document.getElementById(tableId);if(!tbl)return;
+  const rows=tbl.querySelectorAll('tbody tr');
+  let totalHours=0,totalAmt=0,dataRows='';
+  rows.forEach(row=>{
+    const cells=row.querySelectorAll('td');if(cells.length<6)return;
+    const date=cells[0].textContent.trim();
+    const task=cells[1].textContent.trim();
+    const emp=cells[2].textContent.trim();
+    const rate=cells[3].textContent.trim();
+    const hrs=cells[4].textContent.trim();
+    const tot=cells[5].textContent.trim();
+    totalHours+=parseFloat(hrs)||0;
+    totalAmt+=parseFloat(tot.replace('$',''))||0;
+    dataRows+=`<tr><td style="border:1px solid #ccc;padding:4px 8px;font-size:11pt;font-family:Calibri,sans-serif">${date}</td><td style="border:1px solid #ccc;padding:4px 8px;font-size:11pt;font-family:Calibri,sans-serif;color:#1a6b6b">${task}</td><td style="border:1px solid #ccc;padding:4px 8px;font-size:11pt;font-family:Calibri,sans-serif;text-align:center">${emp}</td><td style="border:1px solid #ccc;padding:4px 8px;font-size:11pt;font-family:Calibri,sans-serif;text-align:right">${rate}</td><td style="border:1px solid #ccc;padding:4px 8px;font-size:11pt;font-family:Calibri,sans-serif;text-align:right">${hrs}</td><td style="border:1px solid #ccc;padding:4px 8px;font-size:11pt;font-family:Calibri,sans-serif;text-align:right">${tot}</td></tr>`;
   });
-  const html = `<html><body>
-<p style="margin:0;font-size:12pt;font-weight:bold;font-family:Calibri,sans-serif">${cname}</p>
-<p style="margin:0;font-size:12pt;font-family:Calibri,sans-serif">${cycleLabel}</p>
-<p style="margin:0 0 6px 0;font-size:12pt;font-weight:bold;font-family:Calibri,sans-serif">Professional Services, Hourly</p>
-<table style="border-collapse:collapse;width:100%;font-family:Calibri,sans-serif">
-  <thead><tr style="background:#1a6b6b">
-    <th style="border:1px solid #1a6b6b;padding:5px 8px;font-size:11pt;color:#fff;text-align:left;font-weight:bold">Date</th>
-    <th style="border:1px solid #1a6b6b;padding:5px 8px;font-size:11pt;color:#fff;text-align:left;font-weight:bold">Task</th>
-    <th style="border:1px solid #1a6b6b;padding:5px 8px;font-size:11pt;color:#fff;text-align:center;font-weight:bold">PAG</th>
-    <th style="border:1px solid #1a6b6b;padding:5px 8px;font-size:11pt;color:#fff;text-align:right;font-weight:bold">Rate</th>
-    <th style="border:1px solid #1a6b6b;padding:5px 8px;font-size:11pt;color:#fff;text-align:right;font-weight:bold">Time</th>
-    <th style="border:1px solid #1a6b6b;padding:5px 8px;font-size:11pt;color:#fff;text-align:right;font-weight:bold">Total</th>
-  </tr></thead>
-  <tbody>${dataRows}</tbody>
-  <tfoot><tr style="background:#f0f0f0">
-    <td colspan="3" style="border:1px solid #ccc;padding:5px 8px"></td>
-    <td style="border:1px solid #ccc;padding:5px 8px;font-size:11pt;text-align:right;font-weight:bold">Total</td>
-    <td style="border:1px solid #ccc;padding:5px 8px;font-size:11pt;text-align:right;font-weight:bold">${totalHours.toFixed(2)}</td>
-    <td style="border:1px solid #ccc;padding:5px 8px;font-size:11pt;text-align:right;font-weight:bold">$${totalAmt.toFixed(2)}</td>
-  </tr></tfoot>
-</table></body></html>`;
-  const blob = new Blob([html], {type:'text/html'});
-  const plain = new Blob([`${cname}\n${cycleLabel}\nProfessional Services, Hourly`], {type:'text/plain'});
-  navigator.clipboard.write([new ClipboardItem({'text/html':blob,'text/plain':plain})]).then(() => {
-    const btn = tbl.closest('.client-block').querySelector('.sm');
-    const orig = btn.textContent;
-    btn.textContent = '✓ Copied!';
-    setTimeout(() => btn.textContent = orig, 2000);
-  }).catch(err => alert('Copy failed: ' + err.message));
+  const html=`<!DOCTYPE html><html><body style="font-family:Calibri,sans-serif;padding:20px">
+<p style="margin:0;font-size:12pt;font-weight:bold">${cname}</p>
+<p style="margin:0;font-size:12pt">${cycleLabel}</p>
+<p style="margin:0 0 10px 0;font-size:12pt;font-weight:bold">Professional Services, Hourly</p>
+<table style="border-collapse:collapse;width:100%">
+<thead><tr style="background:#1a6b6b">
+<th style="border:1px solid #1a6b6b;padding:5px 8px;font-size:11pt;color:#fff;text-align:left;font-family:Calibri,sans-serif">Date</th>
+<th style="border:1px solid #1a6b6b;padding:5px 8px;font-size:11pt;color:#fff;text-align:left;font-family:Calibri,sans-serif">Task</th>
+<th style="border:1px solid #1a6b6b;padding:5px 8px;font-size:11pt;color:#fff;text-align:center;font-family:Calibri,sans-serif">PAG</th>
+<th style="border:1px solid #1a6b6b;padding:5px 8px;font-size:11pt;color:#fff;text-align:right;font-family:Calibri,sans-serif">Rate</th>
+<th style="border:1px solid #1a6b6b;padding:5px 8px;font-size:11pt;color:#fff;text-align:right;font-family:Calibri,sans-serif">Time</th>
+<th style="border:1px solid #1a6b6b;padding:5px 8px;font-size:11pt;color:#fff;text-align:right;font-family:Calibri,sans-serif">Total</th>
+</tr></thead>
+<tbody>${dataRows}</tbody>
+<tfoot><tr style="background:#f0f0f0">
+<td colspan="3" style="border:1px solid #ccc;padding:5px 8px;font-family:Calibri,sans-serif"></td>
+<td style="border:1px solid #ccc;padding:5px 8px;font-size:11pt;text-align:right;font-weight:bold;font-family:Calibri,sans-serif">Total</td>
+<td style="border:1px solid #ccc;padding:5px 8px;font-size:11pt;text-align:right;font-weight:bold;font-family:Calibri,sans-serif">${totalHours.toFixed(2)}</td>
+<td style="border:1px solid #ccc;padding:5px 8px;font-size:11pt;text-align:right;font-weight:bold;font-family:Calibri,sans-serif">$${totalAmt.toFixed(2)}</td>
+</tr></tfoot>
+</table>
+<p style="margin-top:16px;font-size:10pt;color:#888;font-style:italic">Select all (Ctrl+A) then copy (Ctrl+C), then paste into Word.</p>
+</body></html>`;
+  const w=window.open('','_blank');
+  w.document.write(html);
+  w.document.close();
 }
+
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
 </script>
 </body>
