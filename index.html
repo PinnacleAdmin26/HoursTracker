@@ -466,13 +466,61 @@ async function doClose(){
 
 function hideModal(){document.getElementById('confirmModal').classList.remove('open')}
 
-function copyTbl(tableId,cname,cycleLabel){
-  const tbl=document.getElementById(tableId);if(!tbl)return;
-  let text=cname+'\n'+cycleLabel+'\nProfessional Services\n\n';
-  tbl.querySelectorAll('tr').forEach(row=>{const cells=[...row.querySelectorAll('th,td')].slice(0,-1).map(c=>c.textContent.trim());text+=cells.join('\t')+'\n'});
-  navigator.clipboard.writeText(text).then(()=>{const btn=tbl.closest('.client-block').querySelector('.sm');const orig=btn.textContent;btn.textContent='✓ Copied!';setTimeout(()=>btn.textContent=orig,2000)});
+function copyTbl(tableId, cname, cycleLabel) {
+  const tbl = document.getElementById(tableId);
+  if (!tbl) return;
+  const rows = tbl.querySelectorAll('tbody tr');
+  let totalHours = 0, totalAmt = 0, dataRows = '';
+  rows.forEach(row => {
+    const cells = row.querySelectorAll('td');
+    if (cells.length < 6) return;
+    const date = cells[0].textContent.trim();
+    const task = cells[1].textContent.trim();
+    const emp  = cells[2].textContent.trim();
+    const rate = cells[3].textContent.trim();
+    const hrs  = cells[4].textContent.trim();
+    const tot  = cells[5].textContent.trim();
+    totalHours += parseFloat(hrs) || 0;
+    totalAmt   += parseFloat(tot.replace('$','')) || 0;
+    dataRows += `<tr>
+      <td style="border:1px solid #ccc;padding:4px 8px;font-size:11pt">${date}</td>
+      <td style="border:1px solid #ccc;padding:4px 8px;font-size:11pt;color:#1a6b6b">${task}</td>
+      <td style="border:1px solid #ccc;padding:4px 8px;font-size:11pt;text-align:center">${emp}</td>
+      <td style="border:1px solid #ccc;padding:4px 8px;font-size:11pt;text-align:right">${rate}</td>
+      <td style="border:1px solid #ccc;padding:4px 8px;font-size:11pt;text-align:right">${hrs}</td>
+      <td style="border:1px solid #ccc;padding:4px 8px;font-size:11pt;text-align:right">${tot}</td>
+    </tr>`;
+  });
+  const html = `<html><body>
+<p style="margin:0;font-size:12pt;font-weight:bold;font-family:Calibri,sans-serif">${cname}</p>
+<p style="margin:0;font-size:12pt;font-family:Calibri,sans-serif">${cycleLabel}</p>
+<p style="margin:0 0 6px 0;font-size:12pt;font-weight:bold;font-family:Calibri,sans-serif">Professional Services, Hourly</p>
+<table style="border-collapse:collapse;width:100%;font-family:Calibri,sans-serif">
+  <thead><tr style="background:#1a6b6b">
+    <th style="border:1px solid #1a6b6b;padding:5px 8px;font-size:11pt;color:#fff;text-align:left;font-weight:bold">Date</th>
+    <th style="border:1px solid #1a6b6b;padding:5px 8px;font-size:11pt;color:#fff;text-align:left;font-weight:bold">Task</th>
+    <th style="border:1px solid #1a6b6b;padding:5px 8px;font-size:11pt;color:#fff;text-align:center;font-weight:bold">PAG</th>
+    <th style="border:1px solid #1a6b6b;padding:5px 8px;font-size:11pt;color:#fff;text-align:right;font-weight:bold">Rate</th>
+    <th style="border:1px solid #1a6b6b;padding:5px 8px;font-size:11pt;color:#fff;text-align:right;font-weight:bold">Time</th>
+    <th style="border:1px solid #1a6b6b;padding:5px 8px;font-size:11pt;color:#fff;text-align:right;font-weight:bold">Total</th>
+  </tr></thead>
+  <tbody>${dataRows}</tbody>
+  <tfoot><tr style="background:#f0f0f0">
+    <td colspan="3" style="border:1px solid #ccc;padding:5px 8px"></td>
+    <td style="border:1px solid #ccc;padding:5px 8px;font-size:11pt;text-align:right;font-weight:bold">Total</td>
+    <td style="border:1px solid #ccc;padding:5px 8px;font-size:11pt;text-align:right;font-weight:bold">${totalHours.toFixed(2)}</td>
+    <td style="border:1px solid #ccc;padding:5px 8px;font-size:11pt;text-align:right;font-weight:bold">$${totalAmt.toFixed(2)}</td>
+  </tr></tfoot>
+</table></body></html>`;
+  const blob = new Blob([html], {type:'text/html'});
+  const plain = new Blob([`${cname}\n${cycleLabel}\nProfessional Services, Hourly`], {type:'text/plain'});
+  navigator.clipboard.write([new ClipboardItem({'text/html':blob,'text/plain':plain})]).then(() => {
+    const btn = tbl.closest('.client-block').querySelector('.sm');
+    const orig = btn.textContent;
+    btn.textContent = '✓ Copied!';
+    setTimeout(() => btn.textContent = orig, 2000);
+  }).catch(err => alert('Copy failed: ' + err.message));
 }
-
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
 </script>
 </body>
