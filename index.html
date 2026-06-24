@@ -482,34 +482,30 @@ function copyTbl(tableId,cname,cycleLabel){
     totalAmt+=parseFloat(tot.replace('$',''))||0;
     dataRows+=`<tr><td style="border:1px solid #ccc;padding:4px 8px;font-size:11pt;font-family:Calibri,sans-serif">${date}</td><td style="border:1px solid #ccc;padding:4px 8px;font-size:11pt;font-family:Calibri,sans-serif;color:#1a6b6b">${task}</td><td style="border:1px solid #ccc;padding:4px 8px;font-size:11pt;font-family:Calibri,sans-serif;text-align:center">${emp}</td><td style="border:1px solid #ccc;padding:4px 8px;font-size:11pt;font-family:Calibri,sans-serif;text-align:right">${rate}</td><td style="border:1px solid #ccc;padding:4px 8px;font-size:11pt;font-family:Calibri,sans-serif;text-align:right">${hrs}</td><td style="border:1px solid #ccc;padding:4px 8px;font-size:11pt;font-family:Calibri,sans-serif;text-align:right">${tot}</td></tr>`;
   });
-  const html=`<!DOCTYPE html><html><body style="font-family:Calibri,sans-serif;padding:20px">
-<p style="margin:0;font-size:12pt;font-weight:bold">${cname}</p>
-<p style="margin:0;font-size:12pt">${cycleLabel}</p>
-<p style="margin:0 0 10px 0;font-size:12pt;font-weight:bold">Professional Services, Hourly</p>
-<table style="border-collapse:collapse;width:100%">
-<thead><tr style="background:#1a6b6b">
-<th style="border:1px solid #1a6b6b;padding:5px 8px;font-size:11pt;color:#fff;text-align:left;font-family:Calibri,sans-serif">Date</th>
-<th style="border:1px solid #1a6b6b;padding:5px 8px;font-size:11pt;color:#fff;text-align:left;font-family:Calibri,sans-serif">Task</th>
-<th style="border:1px solid #1a6b6b;padding:5px 8px;font-size:11pt;color:#fff;text-align:center;font-family:Calibri,sans-serif">PAG</th>
-<th style="border:1px solid #1a6b6b;padding:5px 8px;font-size:11pt;color:#fff;text-align:right;font-family:Calibri,sans-serif">Rate</th>
-<th style="border:1px solid #1a6b6b;padding:5px 8px;font-size:11pt;color:#fff;text-align:right;font-family:Calibri,sans-serif">Time</th>
-<th style="border:1px solid #1a6b6b;padding:5px 8px;font-size:11pt;color:#fff;text-align:right;font-family:Calibri,sans-serif">Total</th>
-</tr></thead>
-<tbody>${dataRows}</tbody>
+  const html=`<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"><meta name=ProgId content=Word.Document><!--[if gte mso 9]><xml><w:WordDocument><w:View>Print</w:View></w:WordDocument></xml><![endif]--><style>body{font-family:Calibri,sans-serif;margin:1in}p{margin:0;font-size:12pt}</style></head><body>
+<p style="font-size:12pt;font-weight:bold">${cname}</p>
+<p style="font-size:12pt">${cycleLabel}</p>
+<p style="font-size:12pt;font-weight:bold;margin-bottom:10pt">Professional Services, Hourly</p>
+<table style="border-collapse:collapse;width:100%"><thead><tr style="background:#1a6b6b">
+<th style="border:1px solid #1a6b6b;padding:5px 8px;font-size:11pt;color:#fff;text-align:left">Date</th>
+<th style="border:1px solid #1a6b6b;padding:5px 8px;font-size:11pt;color:#fff;text-align:left">Task</th>
+<th style="border:1px solid #1a6b6b;padding:5px 8px;font-size:11pt;color:#fff;text-align:center">PAG</th>
+<th style="border:1px solid #1a6b6b;padding:5px 8px;font-size:11pt;color:#fff;text-align:right">Rate</th>
+<th style="border:1px solid #1a6b6b;padding:5px 8px;font-size:11pt;color:#fff;text-align:right">Time</th>
+<th style="border:1px solid #1a6b6b;padding:5px 8px;font-size:11pt;color:#fff;text-align:right">Total</th>
+</tr></thead><tbody>${dataRows}</tbody>
 <tfoot><tr style="background:#f0f0f0">
-<td colspan="3" style="border:1px solid #ccc;padding:5px 8px;font-family:Calibri,sans-serif"></td>
-<td style="border:1px solid #ccc;padding:5px 8px;font-size:11pt;text-align:right;font-weight:bold;font-family:Calibri,sans-serif">Total</td>
-<td style="border:1px solid #ccc;padding:5px 8px;font-size:11pt;text-align:right;font-weight:bold;font-family:Calibri,sans-serif">${totalHours.toFixed(2)}</td>
-<td style="border:1px solid #ccc;padding:5px 8px;font-size:11pt;text-align:right;font-weight:bold;font-family:Calibri,sans-serif">$${totalAmt.toFixed(2)}</td>
-</tr></tfoot>
-</table>
-<p style="margin-top:16px;font-size:10pt;color:#888;font-style:italic">Select all (Ctrl+A) then copy (Ctrl+C), then paste into Word.</p>
-</body></html>`;
-  const w=window.open('','_blank');
-  w.document.write(html);
-  w.document.close();
+<td colspan="3" style="border:1px solid #ccc;padding:5px 8px"></td>
+<td style="border:1px solid #ccc;padding:5px 8px;font-size:11pt;text-align:right;font-weight:bold">Total</td>
+<td style="border:1px solid #ccc;padding:5px 8px;font-size:11pt;text-align:right;font-weight:bold">${totalHours.toFixed(2)}</td>
+<td style="border:1px solid #ccc;padding:5px 8px;font-size:11pt;text-align:right;font-weight:bold">$${totalAmt.toFixed(2)}</td>
+</tr></tfoot></table></body></html>`;
+  const blob=new Blob([html],{type:'application/msword'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download=cname.replace(/[^a-z0-9]/gi,'_')+'_'+cycleLabel.replace(/[^a-z0-9]/gi,'_')+'.doc';
+  a.click();URL.revokeObjectURL(url);
 }
-
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
 </script>
 </body>
