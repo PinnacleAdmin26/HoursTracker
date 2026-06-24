@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Hours Tracker</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:14px;color:#1a1a1a;background:#f5f5f3;min-height:100vh}
+.screen{display:none}.screen.active{display:block}
+.page{max-width:860px;margin:0 auto;padding:2rem 1rem}
+.card{background:#fff;border:1px solid #e5e5e3;border-radius:12px;padding:1.25rem;margin-bottom:1.25rem}
+.hdr{display:flex;align-items:center;justify-content:space-between;padding-bottom:1.25rem;border-bottom:1px solid #e5e5e3;margin-bottom:1.5rem}
+.hdr h1{font-size:18px;font-weight:600}
+.hdr-r{display:flex;align-items:center;gap:10px}
+.badge{font-size:11px;padding:3px 10px;border-radius:20px;font-weight:600}
+.badge-emp{background:#e8f4fd;color:#1a6fa8}
+.badge-adm{background:#e6f7ee;color:#1a7a45}
+.badge-closed{background:#fef3e2;color:#a06000}
+.tabs{display:flex;gap:4px;margin-bottom:1.5rem;background:#f0efed;padding:4px;border-radius:8px;width:fit-content;flex-wrap:wrap}
+.tab{font-size:13px;padding:6px 14px;border:none;background:transparent;border-radius:6px;cursor:pointer;color:#666;font-family:inherit}
+.tab.active{background:#fff;color:#1a1a1a;border:1px solid #e5e5e3;font-weight:500}
+label{font-size:12px;color:#666;display:block;margin-bottom:4px}
+input,select,textarea{width:100%;padding:8px 10px;border:1px solid #e0e0de;border-radius:8px;font-size:13px;font-family:inherit;color:#1a1a1a;background:#fff}
+input:focus,select:focus{outline:none;border-color:#888}
+input[readonly]{background:#f5f5f3}
+button{padding:8px 16px;border:1px solid #d0d0ce;background:#fff;border-radius:8px;font-size:13px;font-family:inherit;cursor:pointer;color:#1a1a1a}
+button:hover{background:#f5f5f3}
+button.primary{background:#1a1a1a;color:#fff;border-color:#1a1a1a}
+button.primary:hover{background:#333}
+button.warn{border-color:#e8a020;color:#a06000;background:#fef3e2}
+button.warn:hover{background:#fde8c0}
+button.danger-sm{background:none;border:none;cursor:pointer;color:#aaa;font-size:13px;padding:2px 5px;border-radius:4px}
+button.danger-sm:hover{color:#c0392b;background:#fdecea}
+button.sm{font-size:12px;padding:5px 10px;border:1px solid #e0e0de;background:#f5f5f3;border-radius:8px;cursor:pointer;font-family:inherit}
+button.sm:hover{background:#eee}
+.err{font-size:12px;color:#c0392b;margin-top:6px;min-height:16px}
+.success{font-size:12px;color:#1a7a45;margin-top:6px;min-height:16px}
+.tbl{width:100%;border-collapse:collapse;font-size:13px}
+.tbl th{text-align:left;font-size:11px;font-weight:600;color:#888;padding:6px 8px;border-bottom:1px solid #e5e5e3}
+.tbl td{padding:7px 8px;border-bottom:1px solid #f0efed;vertical-align:top}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tbody tr:hover td{background:#fafaf8}
+.tbl-foot td{background:#f5f5f3!important;font-weight:600;border-top:1px solid #e5e5e3!important}
+.stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:1.5rem}
+.stat{background:#f5f5f3;border-radius:8px;padding:.875rem}
+.stat-lbl{font-size:11px;color:#888;margin-bottom:3px}
+.stat-val{font-size:20px;font-weight:600}
+.sec{font-size:15px;font-weight:600;margin-bottom:1rem}
+.empty{text-align:center;padding:2.5rem 1rem;color:#888;font-size:13px}
+.client-block{background:#fff;border:1px solid #e5e5e3;border-radius:12px;padding:1.25rem;margin-bottom:1.25rem}
+.client-hdr{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:1rem;gap:12px}
+.client-name{font-size:15px;font-weight:600}
+.client-meta{font-size:12px;color:#888;margin-top:2px}
+.rate-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.pill{display:inline-block;font-size:11px;padding:2px 8px;border-radius:20px;font-weight:500}
+.pill-open{background:#e6f7ee;color:#1a7a45}
+.pill-closed{background:#fef3e2;color:#a06000}
+.form-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.form-grid-4{display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:10px;align-items:end}
+.fl{margin-bottom:0}
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:100;align-items:center;justify-content:center}
+.modal-bg.open{display:flex}
+.modal{background:#fff;border-radius:12px;padding:1.5rem;max-width:420px;width:90%}
+.modal h2{font-size:16px;font-weight:600;margin-bottom:.5rem}
+.modal p{font-size:13px;color:#666;margin-bottom:1.25rem;line-height:1.6}
+.modal-btns{display:flex;gap:8px;justify-content:flex-end}
+.loading{text-align:center;padding:3rem;color:#888;font-size:13px}
+.spinner{display:inline-block;width:18px;height:18px;border:2px solid #e0e0de;border-top-color:#888;border-radius:50%;animation:spin .7s linear infinite;vertical-align:-4px;margin-right:6px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.cycle-banner{border-radius:8px;padding:.75rem 1rem;margin-bottom:1.5rem;border:1px solid #e8a020;background:#fef3e2;font-size:13px;color:#a06000}
+@media(max-width:600px){.form-grid-4{grid-template-columns:1fr 1fr}.stat-grid{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<div id="loginScreen" class="screen active">
+  <div style="max-width:340px;margin:4rem auto;padding:0 1rem">
+    <div class="card">
+      <div style="font-size:20px;font-weight:700;margin-bottom:.25rem">Hours tracker</div>
+      <div style="font-size:13px;color:#888;margin-bottom:1.5rem">Sign in to log or review hours.</div>
+      <div style="margin-bottom:1rem"><label>Username</label>
+        <input type="text" id="lid" placeholder="e.g. GAvigne" autocomplete="username"/></div>
+      <div style="margin-bottom:1rem"><label>Password</label>
+        <input type="password" id="lpw" placeholder="Password" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"/></div>
+      <button class="primary" onclick="doLogin()" style="width:100%" id="loginBtn">Log in</button>
+      <div class="err" id="lerr"></div>
+    </div>
+  </div>
+</div>
+<div id="empScreen" class="screen">
+  <div class="page">
+    <div class="hdr">
+      <div>
+        <h1 id="empName"></h1>
+        <div style="font-size:12px;color:#888;margin-top:2px" id="empCycleLabel"></div>
+      </div>
+      <div class="hdr-r">
+        <span class="badge badge-emp" id="empBadge"></span>
+        <button onclick="doLogout()">Log out</button>
+      </div>
+    </div>
+    <div id="cycleClosedBanner" style="display:none" class="cycle-banner">
+      &#128274; This billing cycle is closed — entries are locked.
+    </div>
+    <div id="logFormWrap" class="card">
+      <div class="sec">Log hours</div>
+      <div class="form-grid-2">
+        <div class="fl"><label>Date</label><input type="date" id="eDate"/></div>
+        <div class="fl"><label>Client</label>
+          <select id="eClient" onchange="onClientChange()"></select></div>
+      </div>
+      <div style="margin-bottom:10px"><label>Task description</label>
+        <input type="text" id="eDesc" placeholder="Describe the work"/></div>
+      <div class="form-grid-4">
+        <div class="fl"><label>Rate ($/hr)</label>
+          <input type="number" id="eRate" min="0" step="0.01" oninput="calcSub()"/></div>
+        <div class="fl"><label>Hours</label>
+          <input type="number" id="eHours" min="0" step="0.25" oninput="calcSub()"/></div>
+        <div class="fl"><label>Subtotal</label>
+          <input type="text" id="eSub" readonly/></div>
+        <button class="primary" onclick="addEntry()" id="addBtn">+ Add</button>
+      </div>
+      <div id="rateNote" style="font-size:11px;color:#888;margin-top:6px"></div>
+      <div class="err" id="eerr"></div>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
+      <div class="sec" style="margin:0">My entries</div>
+      <select id="empCycleFilter" style="width:auto;font-size:13px" onchange="renderEmp()"></select>
+    </div>
+    <div id="empEntries"><div class="loading"><span class="spinner"></span>Loading...</div></div>
+  </div>
+</div>
+<div id="adminScreen" class="screen">
+  <div class="page">
+    <div class="hdr">
+      <h1>Admin</h1>
+      <div class="hdr-r">
+        <span class="badge badge-adm">Admin</span>
+        <button onclick="doLogout()">Log out</button>
+      </div>
+    </div>
+    <div class="tabs">
+      <button class="tab active" onclick="aTab('billing',this)">Billing</button>
+      <button class="tab" onclick="aTab('clients',this)">Clients</button>
+      <button class="tab" onclick="aTab('employees',this)">Employees</button>
+      <button class="tab" onclick="aTab('cycle',this)">Cycle</button>
+    </div>
+    <div id="aBilling">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:1.5rem;flex-wrap:wrap">
+        <div><label style="display:inline;margin-right:6px">Cycle:</label>
+          <select id="aCycleFilter" style="width:auto;font-size:13px" onchange="renderAdmin()"></select></div>
+        <div><label style="display:inline;margin-right:6px">Client:</label>
+          <select id="aClientFilter" style="width:auto;font-size:13px" onchange="renderAdmin()">
+            <option value="">All clients</option></select></div>
+      </div>
+      <div id="billingOut"><div class="loading"><span class="spinner"></span>Loading...</div></div>
+    </div>
+    <div id="aClients" style="display:none">
+      <div class="card">
+        <div class="sec" id="clientFormTitle">Add client</div>
+        <div class="form-grid-2">
+          <div class="fl"><label>Client name</label>
+            <input type="text" id="cName" placeholder="e.g. Harvard Housing & RE"/></div>
+          <div class="fl"><label>Description (optional)</label>
+            <input type="text" id="cDesc" placeholder="e.g. Asset Management Hourly"/></div>
+        </div>
+        <div style="margin-top:10px;margin-bottom:8px;font-size:13px;font-weight:600">Rates per employee</div>
+        <div class="rate-grid" id="clientRateInputs"></div>
+        <div style="font-size:11px;color:#888;margin-top:6px;margin-bottom:12px">Leave blank if employee is not assigned to this client.</div>
+        <div style="display:flex;gap:8px;margin-top:4px">
+          <button class="primary" onclick="saveClient()"><span id="saveClientLabel">Save client</span></button>
+          <button id="cancelClientBtn" style="display:none" onclick="cancelClientEdit()">Cancel</button>
+        </div>
+        <div class="err" id="cerr"></div>
+      </div>
+      <div class="sec">All clients</div>
+      <div id="clientList"><div class="loading"><span class="spinner"></span>Loading...</div></div>
+    </div>
+    <div id="aEmployees" style="display:none">
+      <div class="card">
+        <div class="sec">Employee passwords</div>
+        <div style="font-size:13px;color:#888;margin-bottom:1rem">Edit a password and click Save to update it.</div>
+        <div id="empPwList"><div class="loading"><span class="spinner"></span>Loading...</div></div>
+      </div>
+    </div>
+    <div id="aCycle" style="display:none">
+      <div class="card">
+        <div class="sec">Current cycle</div>
+        <div id="cycleInfo" style="font-size:13px;color:#888;margin-bottom:1rem"></div>
+        <div id="cycleActions"></div>
+      </div>
+      <div class="sec">Past cycles</div>
+      <div id="pastCycleList"></div>
+    </div>
+  </div>
+</div>
+<div id="confirmModal" class="modal-bg">
+  <div class="modal">
+    <h2 id="modalTitle"></h2>
+    <p id="modalMsg"></p>
+    <div class="modal-btns">
+      <button onclick="hideModal()">Cancel</button>
+      <button class="warn" id="modalOk">Confirm</button>
+    </div>
+  </div>
+</div>
+<script src="app.js"></script>
+</body>
+</html>
