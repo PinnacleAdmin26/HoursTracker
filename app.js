@@ -1,7 +1,6 @@
 const SUPABASE_URL = "https://ibarxzdkedsgrppvutny.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImliYXJ4emRrZWRzZ3JwcHZ1dG55Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIyNjkxODMsImV4cCI6MjA5Nzg0NTE4M30.BM9XarIMAehbjJPaSK-ktHxpYjwwslx3i_rNM3UgcO0";
 
-
 async function db(path, opts={}) {
   const res = await fetch(SUPABASE_URL + '/rest/v1/' + path, {
     headers: {
