@@ -76,8 +76,10 @@ button.sm:hover{background:#eee}
 <div id="loginScreen" class="screen active">
   <div style="max-width:340px;margin:4rem auto;padding:0 1rem">
     <div class="card">
-      <div style="font-size:20px;font-weight:700;margin-bottom:.25rem">Hours Tracker</div>
-      <div style="font-size:13px;color:#888;margin-bottom:1.5rem">Sign in to log or review hours.</div>
+     <div style="text-align:center;margin-bottom:1.5rem">
+  <img src="logo.jpg" alt="Pinnacle Advisory Group" style="width:200px"/>
+</div>
+<div style="font-size:13px;color:#888;margin-bottom:1.5rem;text-align:center">Sign in to log or review hours.</div>
       <div style="margin-bottom:1rem"><label>Username</label>
         <input type="text" id="lid" placeholder="e.g. GAvigne" autocomplete="username"/></div>
       <div style="margin-bottom:1rem"><label>Password</label>
@@ -90,7 +92,7 @@ button.sm:hover{background:#eee}
 <div id="empScreen" class="screen">
   <div class="page">
     <div class="hdr">
-      <div><h1 id="empName"></h1>
+      <div><h1><img src="logo.jpg" alt="Pinnacle Advisory Group" style="height:32px;vertical-align:middle;margin-right:10px"/><span id="empName"></span></h1>
         <div style="font-size:12px;color:#888;margin-top:2px" id="empCycleLabel"></div></div>
       <div class="hdr-r">
         <span class="badge badge-emp" id="empBadge"></span>
@@ -124,7 +126,7 @@ button.sm:hover{background:#eee}
 <div id="adminScreen" class="screen">
   <div class="page">
     <div class="hdr">
-      <h1>Admin</h1>
+      <h1><img src="logo.jpg" alt="Pinnacle Advisory Group" style="height:32px;vertical-align:middle;margin-right:10px"/>Admin</h1>
       <div class="hdr-r"><span class="badge badge-adm">Admin</span><button onclick="doLogout()">Log out</button></div>
     </div>
     <div class="tabs">
