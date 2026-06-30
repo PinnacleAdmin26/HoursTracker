@@ -255,8 +255,8 @@ function populateEmpCycleFilter(){
 
 function populateEmpClients(){
   const sel=document.getElementById('eClient');
-  const active=CLIENTS.filter(c=>c.active!==false);
-  if(!active.length){sel.innerHTML='<option value="">No clients — contact Admin</option>';return}
+  const active=CLIENTS.filter(c=>c.active!==false && getRate(c,CU.id)!==null);
+  if(!active.length){sel.innerHTML='<option value="">No clients assigned — contact Admin</option>';return}
   sel.innerHTML=active.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('');
   onClientChange();
 }
