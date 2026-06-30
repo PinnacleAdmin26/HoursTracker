@@ -20,6 +20,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-siz
 .tabs{display:flex;gap:4px;margin-bottom:1.5rem;background:#f0efed;padding:4px;border-radius:8px;width:fit-content;flex-wrap:wrap}
 .tab{font-size:13px;padding:6px 14px;border:none;background:transparent;border-radius:6px;cursor:pointer;color:#666;font-family:inherit}
 .tab.active{background:#fff;color:#1a1a1a;border:1px solid #e5e5e3;font-weight:500}
+.subtabs{display:flex;gap:4px;margin-bottom:1.5rem;border-bottom:1px solid #e5e5e3}
+.subtab{font-size:13px;padding:8px 4px;margin-right:20px;border:none;background:transparent;cursor:pointer;color:#888;font-family:inherit;border-bottom:2px solid transparent}
+.subtab.active{color:#1a1a1a;font-weight:600;border-bottom:2px solid #1a6b6b}
 label{font-size:12px;color:#666;display:block;margin-bottom:4px}
 input,select,textarea{width:100%;padding:8px 10px;border:1px solid #e0e0de;border-radius:8px;font-size:13px;font-family:inherit;color:#1a1a1a;background:#fff}
 input:focus,select:focus{outline:none;border-color:#888}
@@ -56,6 +59,7 @@ button.sm:hover{background:#eee}
 .pill-open{background:#e6f7ee;color:#1a7a45}
 .pill-closed{background:#fef3e2;color:#a06000}
 .form-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.form-grid-3{display:grid;grid-template-columns:1fr 1fr auto;gap:10px;align-items:end}
 .form-grid-4{display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:10px;align-items:end}
 .fl{margin-bottom:0}
 .modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:100;align-items:center;justify-content:center}
@@ -76,7 +80,7 @@ button.sm:hover{background:#eee}
   <div style="max-width:340px;margin:4rem auto;padding:0 1rem">
     <div class="card">
       <div style="text-align:center;margin-bottom:1.25rem">
-        <img src="Logo.jpg" alt="Pinnacle Advisory Group" style="width:220px"/>
+        <img src="logo.jpg" alt="Pinnacle Advisory Group" style="width:220px"/>
       </div>
       <div style="font-size:13px;color:#888;margin-bottom:1.5rem;text-align:center">Sign in to log or review hours.</div>
       <div style="margin-bottom:1rem"><label>Username</label>
@@ -91,7 +95,7 @@ button.sm:hover{background:#eee}
 <div id="empScreen" class="screen">
   <div class="page">
     <div class="hdr">
-      <h1><img src="Logo.jpg" alt="Pinnacle Advisory Group" style="height:32px"/><span id="empName"></span></h1>
+      <h1><img src="logo.jpg" alt="Pinnacle Advisory Group" style="height:32px"/><span id="empName"></span></h1>
       <div class="hdr-r">
         <span class="badge badge-emp" id="empBadge"></span>
         <div style="font-size:12px;color:#888" id="empCycleLabel"></div>
@@ -99,38 +103,68 @@ button.sm:hover{background:#eee}
       </div>
     </div>
     <div id="cycleClosedBanner" style="display:none" class="cycle-banner">&#128274; This billing cycle is closed — entries are locked.</div>
-    <div id="logFormWrap" class="card">
-      <div class="sec">Log hours</div>
-      <div class="form-grid-2">
-        <div class="fl"><label>Date</label><input type="date" id="eDate"/></div>
-        <div class="fl"><label>Client</label><select id="eClient" onchange="onClientChange()"></select></div>
-      </div>
-      <div style="margin-bottom:10px"><label>Task description</label>
-        <input type="text" id="eDesc" placeholder="Describe the work"/></div>
-      <div class="form-grid-4">
-        <div class="fl"><label>Rate ($/hr)</label><input type="number" id="eRate" min="0" step="0.01" oninput="calcSub()"/></div>
-        <div class="fl"><label>Hours</label><input type="number" id="eHours" min="0" step="0.25" oninput="calcSub()"/></div>
-        <div class="fl"><label>Subtotal</label><input type="text" id="eSub" readonly/></div>
-        <button class="primary" onclick="addEntry()" id="addBtn">+ Add</button>
-      </div>
-      <div id="rateNote" style="font-size:11px;color:#888;margin-top:6px"></div>
-      <div class="err" id="eerr"></div>
+
+    <div class="subtabs">
+      <button class="subtab active" onclick="empSubTab('hours',this)">Hours</button>
+      <button class="subtab" onclick="empSubTab('expenses',this)">Expenses</button>
     </div>
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
-      <div class="sec" style="margin:0">My entries</div>
-      <select id="empCycleFilter" style="width:auto;font-size:13px" onchange="renderEmp()"></select>
+
+    <div id="empHoursPanel">
+      <div id="logFormWrap" class="card">
+        <div class="sec">Log hours</div>
+        <div class="form-grid-2">
+          <div class="fl"><label>Date</label><input type="date" id="eDate"/></div>
+          <div class="fl"><label>Client</label><select id="eClient" onchange="onClientChange()"></select></div>
+        </div>
+        <div style="margin-bottom:10px"><label>Task description</label>
+          <input type="text" id="eDesc" placeholder="Describe the work"/></div>
+        <div class="form-grid-4">
+          <div class="fl"><label>Rate ($/hr)</label><input type="number" id="eRate" min="0" step="0.01" oninput="calcSub()"/></div>
+          <div class="fl"><label>Hours</label><input type="number" id="eHours" min="0" step="0.25" oninput="calcSub()"/></div>
+          <div class="fl"><label>Subtotal</label><input type="text" id="eSub" readonly/></div>
+          <button class="primary" onclick="addEntry()" id="addBtn">+ Add</button>
+        </div>
+        <div id="rateNote" style="font-size:11px;color:#888;margin-top:6px"></div>
+        <div class="err" id="eerr"></div>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
+        <div class="sec" style="margin:0">My entries</div>
+        <select id="empCycleFilter" style="width:auto;font-size:13px" onchange="renderEmp()"></select>
+      </div>
+      <div id="empEntries"><div class="loading"><span class="spinner"></span>Loading...</div></div>
     </div>
-    <div id="empEntries"><div class="loading"><span class="spinner"></span>Loading...</div></div>
+
+    <div id="empExpensesPanel" style="display:none">
+      <div id="expFormWrap" class="card">
+        <div class="sec">Add expense</div>
+        <div class="form-grid-2">
+          <div class="fl"><label>Date</label><input type="date" id="xDate"/></div>
+          <div class="fl"><label>Client</label><select id="xClient"></select></div>
+        </div>
+        <div class="form-grid-3">
+          <div class="fl"><label>Description</label><input type="text" id="xDesc" placeholder="e.g. Mileage — site visit, Parking, Hotel"/></div>
+          <div class="fl"><label>Amount ($)</label><input type="number" id="xAmount" min="0" step="0.01" placeholder="0.00"/></div>
+          <button class="primary" onclick="addExpense()" id="addExpBtn">+ Add</button>
+        </div>
+        <div class="err" id="xerr"></div>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
+        <div class="sec" style="margin:0">My expenses</div>
+        <select id="empExpCycleFilter" style="width:auto;font-size:13px" onchange="renderEmpExpenses()"></select>
+      </div>
+      <div id="empExpenses"><div class="loading"><span class="spinner"></span>Loading...</div></div>
+    </div>
   </div>
 </div>
 <div id="adminScreen" class="screen">
   <div class="page">
     <div class="hdr">
-      <h1><img src="Logo.jpg" alt="Pinnacle Advisory Group" style="height:32px"/>Admin</h1>
+      <h1><img src="logo.jpg" alt="Pinnacle Advisory Group" style="height:32px"/>Admin</h1>
       <div class="hdr-r"><span class="badge badge-adm">Admin</span><button onclick="doLogout()">Log out</button></div>
     </div>
     <div class="tabs">
       <button class="tab active" onclick="aTab('billing',this)">Billing</button>
+      <button class="tab" onclick="aTab('expenses',this)">Expenses</button>
       <button class="tab" onclick="aTab('clients',this)">Clients</button>
       <button class="tab" onclick="aTab('employees',this)">Employees</button>
       <button class="tab" onclick="aTab('cycle',this)">Cycle</button>
@@ -144,6 +178,15 @@ button.sm:hover{background:#eee}
           <select id="aClientFilter" style="width:auto;font-size:13px" onchange="renderAdmin()"><option value="">All clients</option></select></div>
       </div>
       <div id="billingOut"><div class="loading"><span class="spinner"></span>Loading...</div></div>
+    </div>
+    <div id="aExpenses" style="display:none">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:1.5rem;flex-wrap:wrap">
+        <div><label style="display:inline;margin-right:6px">Cycle:</label>
+          <select id="aExpCycleFilter" style="width:auto;font-size:13px" onchange="renderAdminExpenses()"></select></div>
+        <div><label style="display:inline;margin-right:6px">Client:</label>
+          <select id="aExpClientFilter" style="width:auto;font-size:13px" onchange="renderAdminExpenses()"><option value="">All clients</option></select></div>
+      </div>
+      <div id="expensesOut"><div class="loading"><span class="spinner"></span>Loading...</div></div>
     </div>
     <div id="aClients" style="display:none">
       <div class="card">
@@ -234,21 +277,36 @@ async function doLogin(){
 function doLogout(){CU=null;EMPLOYEES=[];CLIENTS=[];CYCLES=[];editingClientId=null;document.getElementById('lid').value='';document.getElementById('lpw').value='';showScreen('loginScreen')}
 function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');hideModal()}
 
+function empSubTab(tab,btn){
+  document.querySelectorAll('.subtab').forEach(t=>t.classList.remove('active'));btn.classList.add('active');
+  document.getElementById('empHoursPanel').style.display=tab==='hours'?'':'none';
+  document.getElementById('empExpensesPanel').style.display=tab==='expenses'?'':'none';
+  if(tab==='expenses'){populateEmpExpClients();populateEmpExpCycleFilter();renderEmpExpenses();}
+}
+
 function initEmp(){
   document.getElementById('empName').textContent=CU.name;
   document.getElementById('empBadge').textContent=CU.initials;
   document.getElementById('eDate').value=new Date().toISOString().split('T')[0];
+  document.getElementById('xDate').value=new Date().toISOString().split('T')[0];
   populateEmpCycleFilter();populateEmpClients();
   const ac=activeCycle();
   document.getElementById('empCycleLabel').textContent=ac?ac.label:'';
   const closed=ac&&ac.closed;
   document.getElementById('cycleClosedBanner').style.display=closed?'':'none';
   document.getElementById('logFormWrap').style.display=closed?'none':'';
+  document.getElementById('expFormWrap').style.display=closed?'none':'';
   renderEmp();
 }
 
 function populateEmpCycleFilter(){
   const sel=document.getElementById('empCycleFilter');
+  sel.innerHTML=CYCLES.slice().reverse().map(c=>`<option value="${c.id}">${c.label}${c.closed?' (closed)':''}</option>`).join('');
+  const ac=activeCycle();if(ac)sel.value=ac.id;
+}
+
+function populateEmpExpCycleFilter(){
+  const sel=document.getElementById('empExpCycleFilter');
   sel.innerHTML=CYCLES.slice().reverse().map(c=>`<option value="${c.id}">${c.label}${c.closed?' (closed)':''}</option>`).join('');
   const ac=activeCycle();if(ac)sel.value=ac.id;
 }
@@ -259,6 +317,13 @@ function populateEmpClients(){
   if(!active.length){sel.innerHTML='<option value="">No clients assigned — contact Admin</option>';return}
   sel.innerHTML=active.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('');
   onClientChange();
+}
+
+function populateEmpExpClients(){
+  const sel=document.getElementById('xClient');
+  const active=CLIENTS.filter(c=>c.active!==false && getRate(c,CU.id)!==null);
+  if(!active.length){sel.innerHTML='<option value="">No clients assigned — contact Admin</option>';return}
+  sel.innerHTML=active.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('');
 }
 
 function onClientChange(){
@@ -293,6 +358,26 @@ async function addEntry(){
   finally{btn.textContent='+ Add';btn.disabled=false}
 }
 
+async function addExpense(){
+  const date=document.getElementById('xDate').value;
+  const cid=document.getElementById('xClient').value;
+  const desc=document.getElementById('xDesc').value.trim();
+  const amount=parseFloat(document.getElementById('xAmount').value);
+  const err=document.getElementById('xerr');
+  if(!date||!cid||!desc||isNaN(amount)||amount<=0){err.textContent='Please fill in all fields with valid values.';return}
+  err.textContent='';
+  const client=CLIENTS.find(c=>c.id===cid);
+  const ac=activeCycle();
+  const btn=document.getElementById('addExpBtn');
+  btn.textContent='Saving...';btn.disabled=true;
+  try{
+    await db('expenses',{method:'POST',body:{date,client_id:cid,client_name:client?client.name:cid,description:desc,amount:parseFloat(amount.toFixed(2)),employee_id:CU.id,employee_initials:CU.initials,employee_name:CU.name,cycle_id:ac?ac.id:null}});
+    document.getElementById('xDesc').value='';document.getElementById('xAmount').value='';
+    renderEmpExpenses();
+  }catch(e){err.textContent='Error saving expense: '+e.message}
+  finally{btn.textContent='+ Add';btn.disabled=false}
+}
+
 async function renderEmp(){
   const cid=document.getElementById('empCycleFilter').value;
   const wrap=document.getElementById('empEntries');
@@ -310,10 +395,32 @@ async function renderEmp(){
   }catch(e){wrap.innerHTML='<div class="empty">Error: '+e.message+'</div>'}
 }
 
+async function renderEmpExpenses(){
+  const cid=document.getElementById('empExpCycleFilter').value;
+  const wrap=document.getElementById('empExpenses');
+  wrap.innerHTML='<div class="loading"><span class="spinner"></span>Loading...</div>';
+  try{
+    const rows=await db(`expenses?employee_id=eq.${CU.id}&cycle_id=eq.${cid}&select=*&order=date`);
+    const cycle=CYCLES.find(c=>c.id===cid);const locked=cycle&&cycle.closed;
+    if(!rows.length){wrap.innerHTML='<div class="empty">No expenses for this cycle.</div>';return}
+    const totA=rows.reduce((s,e)=>s+parseFloat(e.amount),0);
+    wrap.innerHTML=`<div class="stat-grid"><div class="stat"><div class="stat-lbl">Expenses</div><div class="stat-val">${rows.length}</div></div><div class="stat"><div class="stat-lbl">Total</div><div class="stat-val">$${totA.toFixed(2)}</div></div></div>
+    <table class="tbl"><thead><tr><th style="width:92px">Date</th><th>Client</th><th>Description</th><th style="width:80px">Amount</th>${locked?'':'<th style="width:28px"></th>'}</tr></thead>
+    <tbody>${rows.map(e=>`<tr style="${locked?'color:#999':''}"><td>${e.date}</td><td style="font-size:12px">${esc(e.client_name)}</td><td style="font-size:12px">${esc(e.description)}</td><td>$${parseFloat(e.amount).toFixed(2)}</td>${locked?'':`<td><button class="danger-sm" onclick="delExpense('${e.id}')">&#x2715;</button></td>`}</tr>`).join('')}</tbody>
+    <tfoot><tr class="tbl-foot"><td colspan="3" style="color:#888">Total</td><td>$${totA.toFixed(2)}</td>${locked?'':'<td></td>'}</tr></tfoot></table>`;
+  }catch(e){wrap.innerHTML='<div class="empty">Error: '+e.message+'</div>'}
+}
+
 async function delEntry(id){
   if(!confirm('Delete this entry?'))return;
   try{await db(`entries?id=eq.${id}`,{method:'DELETE',prefer:'return=minimal'});if(CU.role==='admin')renderAdmin();else renderEmp()}
   catch(e){alert('Error deleting entry.')}
+}
+
+async function delExpense(id){
+  if(!confirm('Delete this expense?'))return;
+  try{await db(`expenses?id=eq.${id}`,{method:'DELETE',prefer:'return=minimal'});if(CU.role==='admin')renderAdminExpenses();else renderEmpExpenses()}
+  catch(e){alert('Error deleting expense.')}
 }
 
 function initAdmin(){buildClientRateInputs();buildEmpPwList();populateAdminFilters();renderAdmin();renderClientList();renderCycleTab();populateReportCycles();}
@@ -324,6 +431,12 @@ function populateAdminFilters(){
   const ac=activeCycle();if(ac)cs.value=ac.id;
   const ps=document.getElementById('aClientFilter');
   ps.innerHTML='<option value="">All clients</option>'+CLIENTS.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('');
+
+  const xcs=document.getElementById('aExpCycleFilter');
+  xcs.innerHTML=CYCLES.slice().reverse().map(c=>`<option value="${c.id}">${c.label}${c.closed?' (closed)':''}</option>`).join('');
+  if(ac)xcs.value=ac.id;
+  const xps=document.getElementById('aExpClientFilter');
+  xps.innerHTML='<option value="">All clients</option>'+CLIENTS.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('');
 }
 
 async function renderAdmin(){
@@ -356,11 +469,40 @@ async function renderAdmin(){
   }catch(e){wrap.innerHTML='<div class="empty">Error: '+e.message+'</div>'}
 }
 
+async function renderAdminExpenses(){
+  const cid=document.getElementById('aExpCycleFilter').value;
+  const fid=document.getElementById('aExpClientFilter').value;
+  const wrap=document.getElementById('expensesOut');
+  wrap.innerHTML='<div class="loading"><span class="spinner"></span>Loading...</div>';
+  try{
+    let url=`expenses?cycle_id=eq.${cid}&select=*&order=date`;
+    if(fid)url+=`&client_id=eq.${fid}`;
+    const rows=await db(url);
+    if(!rows.length){wrap.innerHTML='<div class="empty">No expenses for this period.</div>';return}
+    const cycle=CYCLES.find(c=>c.id===cid);const cycleLabel=cycle?cycle.label:cid;
+    const byClient={};
+    rows.forEach(e=>{if(!byClient[e.client_name])byClient[e.client_name]=[];byClient[e.client_name].push(e)});
+    const grandA=rows.reduce((s,e)=>s+parseFloat(e.amount),0);
+    let html=`<div class="stat-grid"><div class="stat"><div class="stat-lbl">Total expenses</div><div class="stat-val">${rows.length}</div></div><div class="stat"><div class="stat-lbl">Total amount</div><div class="stat-val">$${grandA.toFixed(2)}</div></div></div>`;
+    Object.keys(byClient).sort().forEach(cname=>{
+      const cr=byClient[cname].sort((a,b)=>a.date.localeCompare(b.date));
+      const tA=cr.reduce((s,e)=>s+parseFloat(e.amount),0);
+      const emps=[...new Set(cr.map(r=>r.employee_initials))].join(', ');
+      const tid='xtbl_'+cname.replace(/[^a-z0-9]/gi,'_');
+      html+=`<div class="client-block"><div class="client-hdr"><div><div class="client-name">${esc(cname)}</div><div class="client-meta">${emps} · $${tA.toFixed(2)}</div></div><button class="sm" onclick="copyExpTbl('${tid}','${esc(cname)}','${cycleLabel}')">&#x2398; Open for reimbursement</button></div>
+      <table class="tbl" id="${tid}"><thead><tr><th style="width:92px">Date</th><th>Description</th><th style="width:40px">Emp</th><th style="width:80px">Amount</th><th style="width:28px"></th></tr></thead>
+      <tbody>${cr.map(e=>`<tr><td>${e.date}</td><td style="font-size:12px">${esc(e.description)}</td><td>${e.employee_initials}</td><td>$${parseFloat(e.amount).toFixed(2)}</td><td><button class="danger-sm" onclick="delExpense('${e.id}')">&#x2715;</button></td></tr>`).join('')}</tbody>
+      <tfoot><tr class="tbl-foot"><td colspan="2" style="color:#888">Total</td><td></td><td>$${tA.toFixed(2)}</td><td></td></tr></tfoot></table></div>`;
+    });
+    wrap.innerHTML=html;
+  }catch(e){wrap.innerHTML='<div class="empty">Error: '+e.message+'</div>'}
+}
+
 function aTab(tab,btn){
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));btn.classList.add('active');
-  ['aBilling','aClients','aEmployees','aCycle','aReports'].forEach(id=>document.getElementById(id).style.display='none');
-  document.getElementById({billing:'aBilling',clients:'aClients',employees:'aEmployees',cycle:'aCycle',reports:'aReports'}[tab]).style.display='';
-  if(tab==='cycle')renderCycleTab();if(tab==='clients')renderClientList();if(tab==='employees')buildEmpPwList();if(tab==='reports'){populateReportCycles();renderReport();}
+  ['aBilling','aExpenses','aClients','aEmployees','aCycle','aReports'].forEach(id=>document.getElementById(id).style.display='none');
+  document.getElementById({billing:'aBilling',expenses:'aExpenses',clients:'aClients',employees:'aEmployees',cycle:'aCycle',reports:'aReports'}[tab]).style.display='';
+  if(tab==='cycle')renderCycleTab();if(tab==='clients')renderClientList();if(tab==='employees')buildEmpPwList();if(tab==='reports'){populateReportCycles();renderReport();}if(tab==='expenses')renderAdminExpenses();
 }
 
 function buildClientRateInputs(){
@@ -444,11 +586,12 @@ async function renderCycleTab(){
   const ac=activeCycle();
   const info=document.getElementById('cycleInfo');const actions=document.getElementById('cycleActions');
   if(!ac){info.textContent='No active cycle.';actions.innerHTML='';return}
-  let cnt=0,amt=0;
+  let cnt=0,amt=0,xcnt=0,xamt=0;
   try{const rows=await db(`entries?cycle_id=eq.${ac.id}&select=subtotal,hours`);cnt=rows.length;amt=rows.reduce((s,e)=>s+parseFloat(e.subtotal),0)}catch(e){}
-  info.innerHTML=`<strong>${ac.label}</strong> &nbsp;·&nbsp; ${cnt} entries &nbsp;·&nbsp; $${amt.toFixed(2)}`;
+  try{const xrows=await db(`expenses?cycle_id=eq.${ac.id}&select=amount`);xcnt=xrows.length;xamt=xrows.reduce((s,e)=>s+parseFloat(e.amount),0)}catch(e){}
+  info.innerHTML=`<strong>${ac.label}</strong> &nbsp;·&nbsp; ${cnt} hour entries, $${amt.toFixed(2)} &nbsp;·&nbsp; ${xcnt} expenses, $${xamt.toFixed(2)}`;
   if(ac.closed){actions.innerHTML=`<div style="color:#a06000;font-size:13px">&#128274; Closed on ${ac.closed_at?new Date(ac.closed_at).toLocaleDateString():'—'}</div>`}
-  else{actions.innerHTML=`<div style="font-size:13px;color:#888;margin-bottom:1rem;line-height:1.6">Closing locks all entries for ${ac.label} and opens a new cycle for the following month.</div><button class="warn" onclick="showCloseModal()">&#128274; Close ${ac.label}</button>`}
+  else{actions.innerHTML=`<div style="font-size:13px;color:#888;margin-bottom:1rem;line-height:1.6">Closing locks all hours and expenses for ${ac.label} and opens a new cycle for the following month.</div><button class="warn" onclick="showCloseModal()">&#128274; Close ${ac.label}</button>`}
   const past=CYCLES.filter(c=>c.id!==ac.id).slice().reverse();
   const pw=document.getElementById('pastCycleList');
   if(!past.length){pw.innerHTML='<div class="empty">No past cycles yet.</div>';return}
@@ -460,7 +603,7 @@ function showCloseModal(){
   const ac=activeCycle();if(!ac)return;
   const next=new Date(ac.year,ac.month+1,1);const nextLabel=next.toLocaleString('default',{month:'long',year:'numeric'});
   document.getElementById('modalTitle').textContent='Close '+ac.label+'?';
-  document.getElementById('modalMsg').textContent=`This locks all entries for ${ac.label}. A new billing cycle (${nextLabel}) will open immediately. This cannot be undone.`;
+  document.getElementById('modalMsg').textContent=`This locks all hours and expenses for ${ac.label}. A new billing cycle (${nextLabel}) will open immediately. This cannot be undone.`;
   document.getElementById('modalOk').onclick=doClose;document.getElementById('confirmModal').classList.add('open');
 }
 
@@ -490,31 +633,37 @@ async function renderReport(){
   wrap.innerHTML='<div class="loading"><span class="spinner"></span>Loading...</div>';
   try{
     const rows=await db(`entries?cycle_id=eq.${cid}&select=*&order=employee_name,date`);
+    const xrows=await db(`expenses?cycle_id=eq.${cid}&select=*&order=employee_name,date`);
     const cycle=CYCLES.find(c=>c.id===cid);
-    if(!rows.length){wrap.innerHTML='<div class="empty">No entries for this cycle.</div>';return}
+    if(!rows.length && !xrows.length){wrap.innerHTML='<div class="empty">No entries for this cycle.</div>';return}
     const byEmp={};
     rows.forEach(e=>{
-      if(!byEmp[e.employee_id])byEmp[e.employee_id]={name:e.employee_name,initials:e.employee_initials,clients:{}};
+      if(!byEmp[e.employee_id])byEmp[e.employee_id]={name:e.employee_name,initials:e.employee_initials,clients:{},expenses:0};
       if(!byEmp[e.employee_id].clients[e.client_name])byEmp[e.employee_id].clients[e.client_name]={hours:0,subtotal:0};
       byEmp[e.employee_id].clients[e.client_name].hours+=parseFloat(e.hours);
       byEmp[e.employee_id].clients[e.client_name].subtotal+=parseFloat(e.subtotal);
     });
+    xrows.forEach(x=>{
+      if(!byEmp[x.employee_id])byEmp[x.employee_id]={name:x.employee_name,initials:x.employee_initials,clients:{},expenses:0};
+      byEmp[x.employee_id].expenses+=parseFloat(x.amount);
+    });
     const grandH=rows.reduce((s,e)=>s+parseFloat(e.hours),0);
     const grandA=rows.reduce((s,e)=>s+parseFloat(e.subtotal),0);
+    const grandX=xrows.reduce((s,e)=>s+parseFloat(e.amount),0);
     let html=`<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
       <div class="sec" style="margin:0">${cycle?cycle.label:cid} — Employee Summary</div>
       <button class="sm" onclick="downloadReport('${cid}')">&#x2913; Download Word Report</button>
     </div>
     <div class="stat-grid">
-      <div class="stat"><div class="stat-lbl">Total entries</div><div class="stat-val">${rows.length}</div></div>
       <div class="stat"><div class="stat-lbl">Total hours</div><div class="stat-val">${grandH.toFixed(2)}</div></div>
       <div class="stat"><div class="stat-lbl">Total billed</div><div class="stat-val">$${grandA.toFixed(2)}</div></div>
+      <div class="stat"><div class="stat-lbl">Total expenses</div><div class="stat-val">$${grandX.toFixed(2)}</div></div>
     </div>`;
     Object.keys(byEmp).sort((a,b)=>byEmp[a].name.localeCompare(byEmp[b].name)).forEach(eid=>{
       const emp=byEmp[eid];
       const totH=Object.values(emp.clients).reduce((s,c)=>s+c.hours,0);
       const totA=Object.values(emp.clients).reduce((s,c)=>s+c.subtotal,0);
-      html+=`<div class="client-block"><div class="client-hdr"><div><div class="client-name">${emp.name} <span style="font-size:13px;color:#888;font-weight:400">(${emp.initials})</span></div><div class="client-meta">${totH.toFixed(2)} hrs · $${totA.toFixed(2)}</div></div></div>
+      html+=`<div class="client-block"><div class="client-hdr"><div><div class="client-name">${emp.name} <span style="font-size:13px;color:#888;font-weight:400">(${emp.initials})</span></div><div class="client-meta">${totH.toFixed(2)} hrs · $${totA.toFixed(2)}${emp.expenses?` · $${emp.expenses.toFixed(2)} expenses`:''}</div></div></div>
         <table class="tbl"><thead><tr><th>Client</th><th style="width:80px;text-align:right">Hours</th><th style="width:90px;text-align:right">Amount</th></tr></thead>
         <tbody>${Object.keys(emp.clients).sort().map(cname=>`<tr><td>${esc(cname)}</td><td style="text-align:right">${emp.clients[cname].hours.toFixed(2)}</td><td style="text-align:right">$${emp.clients[cname].subtotal.toFixed(2)}</td></tr>`).join('')}</tbody>
         <tfoot><tr class="tbl-foot"><td style="color:#888">Total</td><td style="text-align:right">${totH.toFixed(2)}</td><td style="text-align:right">$${totA.toFixed(2)}</td></tr></tfoot>
@@ -527,22 +676,28 @@ async function renderReport(){
 async function downloadReport(cid){
   const cycle=CYCLES.find(c=>c.id===cid);
   const rows=await db(`entries?cycle_id=eq.${cid}&select=*&order=employee_name,date`);
+  const xrows=await db(`expenses?cycle_id=eq.${cid}&select=*&order=employee_name,date`);
   const byEmp={};
   rows.forEach(e=>{
-    if(!byEmp[e.employee_id])byEmp[e.employee_id]={name:e.employee_name,initials:e.employee_initials,clients:{}};
+    if(!byEmp[e.employee_id])byEmp[e.employee_id]={name:e.employee_name,initials:e.employee_initials,clients:{},expenses:0};
     if(!byEmp[e.employee_id].clients[e.client_name])byEmp[e.employee_id].clients[e.client_name]={hours:0,subtotal:0};
     byEmp[e.employee_id].clients[e.client_name].hours+=parseFloat(e.hours);
     byEmp[e.employee_id].clients[e.client_name].subtotal+=parseFloat(e.subtotal);
   });
+  xrows.forEach(x=>{
+    if(!byEmp[x.employee_id])byEmp[x.employee_id]={name:x.employee_name,initials:x.employee_initials,clients:{},expenses:0};
+    byEmp[x.employee_id].expenses+=parseFloat(x.amount);
+  });
   const grandH=rows.reduce((s,e)=>s+parseFloat(e.hours),0);
   const grandA=rows.reduce((s,e)=>s+parseFloat(e.subtotal),0);
+  const grandX=xrows.reduce((s,e)=>s+parseFloat(e.amount),0);
   const cycleLabel=cycle?cycle.label:cid;
   let empSections='';
   Object.keys(byEmp).sort((a,b)=>byEmp[a].name.localeCompare(byEmp[b].name)).forEach(eid=>{
     const emp=byEmp[eid];
     const totH=Object.values(emp.clients).reduce((s,c)=>s+c.hours,0);
     const totA=Object.values(emp.clients).reduce((s,c)=>s+c.subtotal,0);
-    empSections+=`<p style="font-size:13pt;font-weight:bold;font-family:Calibri,sans-serif;margin:16pt 0 4pt 0">${emp.name} (${emp.initials})</p>
+    empSections+=`<p style="font-size:13pt;font-weight:bold;font-family:Calibri,sans-serif;margin:16pt 0 4pt 0">${emp.name} (${emp.initials})${emp.expenses?` — Expenses: $${emp.expenses.toFixed(2)}`:''}</p>
     <table style="border-collapse:collapse;width:400pt"><thead><tr style="background:#1a6b6b">
       <th style="border:1px solid #1a6b6b;padding:5px 8px;font-size:11pt;color:#fff;text-align:left;font-family:Calibri,sans-serif">Client</th>
       <th style="border:1px solid #1a6b6b;padding:5px 8px;font-size:11pt;color:#fff;text-align:right;width:80pt;font-family:Calibri,sans-serif">Hours</th>
@@ -560,7 +715,7 @@ async function downloadReport(cid){
   const html=`<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"><meta name=ProgId content=Word.Document><!--[if gte mso 9]><xml><w:WordDocument><w:View>Print</w:View></w:WordDocument></xml><![endif]--><style>body{font-family:Calibri,sans-serif;margin:1in}p{margin:0}</style></head><body>
   <p style="font-size:14pt;font-weight:bold;font-family:Calibri,sans-serif">Pinnacle Advisory Group</p>
   <p style="font-size:13pt;font-family:Calibri,sans-serif;margin-bottom:4pt">${cycleLabel} — Employee Hours Summary</p>
-  <p style="font-size:11pt;color:#888;font-family:Calibri,sans-serif;margin-bottom:16pt">Total: ${grandH.toFixed(2)} hrs · $${grandA.toFixed(2)}</p>
+  <p style="font-size:11pt;color:#888;font-family:Calibri,sans-serif;margin-bottom:16pt">Hours: ${grandH.toFixed(2)} hrs · $${grandA.toFixed(2)} &nbsp;·&nbsp; Expenses: $${grandX.toFixed(2)}</p>
   ${empSections}</body></html>`;
   const blob=new Blob([html],{type:'application/msword'});
   const url=URL.createObjectURL(blob);
@@ -607,6 +762,41 @@ function copyTbl(tableId,cname,cycleLabel){
   const url=URL.createObjectURL(blob);
   const a=document.createElement('a');
   a.href=url;a.download=cname.replace(/[^a-z0-9]/gi,'_')+'_'+cycleLabel.replace(/[^a-z0-9]/gi,'_')+'.doc';
+  a.click();URL.revokeObjectURL(url);
+}
+
+function copyExpTbl(tableId,cname,cycleLabel){
+  const tbl=document.getElementById(tableId);if(!tbl)return;
+  const rows=tbl.querySelectorAll('tbody tr');
+  let totalAmt=0,dataRows='';
+  rows.forEach(row=>{
+    const cells=row.querySelectorAll('td');if(cells.length<4)return;
+    const date=cells[0].textContent.trim();
+    const desc=cells[1].textContent.trim();
+    const emp=cells[2].textContent.trim();
+    const amt=cells[3].textContent.trim();
+    totalAmt+=parseFloat(amt.replace('$',''))||0;
+    dataRows+=`<tr><td style="border:1px solid #ccc;padding:4px 8px;font-size:11pt;font-family:Calibri,sans-serif">${date}</td><td style="border:1px solid #ccc;padding:4px 8px;font-size:11pt;font-family:Calibri,sans-serif;color:#1a6b6b">${desc}</td><td style="border:1px solid #ccc;padding:4px 8px;font-size:11pt;font-family:Calibri,sans-serif;text-align:center">${emp}</td><td style="border:1px solid #ccc;padding:4px 8px;font-size:11pt;font-family:Calibri,sans-serif;text-align:right">${amt}</td></tr>`;
+  });
+  const html=`<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"><meta name=ProgId content=Word.Document><!--[if gte mso 9]><xml><w:WordDocument><w:View>Print</w:View></w:WordDocument></xml><![endif]--><style>body{font-family:Calibri,sans-serif;margin:1in}p{margin:0;font-size:12pt}</style></head><body>
+<p style="font-size:12pt;font-weight:bold">${cname}</p>
+<p style="font-size:12pt">${cycleLabel}</p>
+<p style="font-size:12pt;font-weight:bold;margin-bottom:10pt">Reimbursable Expenses</p>
+<table style="border-collapse:collapse;width:auto;min-width:400pt"><thead><tr style="background:#1a6b6b">
+<th style="border:1px solid #1a6b6b;padding:5px 8px;font-size:11pt;color:#fff;text-align:left">Date</th>
+<th style="border:1px solid #1a6b6b;padding:5px 8px;font-size:11pt;color:#fff;text-align:left">Description</th>
+<th style="border:1px solid #1a6b6b;padding:5px 8px;font-size:11pt;color:#fff;text-align:center">PAG</th>
+<th style="border:1px solid #1a6b6b;padding:5px 8px;font-size:11pt;color:#fff;text-align:right">Amount</th>
+</tr></thead><tbody>${dataRows}</tbody>
+<tfoot><tr style="background:#f0f0f0">
+<td colspan="2" style="border:1px solid #ccc;padding:5px 8px"></td>
+<td style="border:1px solid #ccc;padding:5px 8px;font-size:11pt;text-align:right;font-weight:bold">Total</td>
+<td style="border:1px solid #ccc;padding:5px 8px;font-size:11pt;text-align:right;font-weight:bold">$${totalAmt.toFixed(2)}</td>
+</tr></tfoot></table></body></html>`;
+  const blob=new Blob([html],{type:'application/msword'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download=cname.replace(/[^a-z0-9]/gi,'_')+'_Expenses_'+cycleLabel.replace(/[^a-z0-9]/gi,'_')+'.doc';
   a.click();URL.revokeObjectURL(url);
 }
 
