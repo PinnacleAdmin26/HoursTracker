@@ -646,16 +646,17 @@ async function renderReport(){
   if(!cid){wrap.innerHTML='';return}
   wrap.innerHTML='<div class="loading"><span class="spinner"></span>Loading...</div>';
   try{
-    const rows=await db(`entries?cycle_id=eq.${cid}&select=*&order=employee_name,date`);
+    const rows=await db(`entries?cycle_id=eq.${cid}&select=*&order=employee_name,client_name,date`);
     const xrows=await db(`expenses?cycle_id=eq.${cid}&select=*&order=employee_name,date`);
     const cycle=CYCLES.find(c=>c.id===cid);
     if(!rows.length && !xrows.length){wrap.innerHTML='<div class="empty">No entries for this cycle.</div>';return}
     const byEmp={};
     rows.forEach(e=>{
       if(!byEmp[e.employee_id])byEmp[e.employee_id]={name:e.employee_name,initials:e.employee_initials,clients:{},expenses:0};
-      if(!byEmp[e.employee_id].clients[e.client_name])byEmp[e.employee_id].clients[e.client_name]={hours:0,subtotal:0};
+      if(!byEmp[e.employee_id].clients[e.client_name])byEmp[e.employee_id].clients[e.client_name]={hours:0,subtotal:0,items:[]};
       byEmp[e.employee_id].clients[e.client_name].hours+=parseFloat(e.hours);
       byEmp[e.employee_id].clients[e.client_name].subtotal+=parseFloat(e.subtotal);
+      byEmp[e.employee_id].clients[e.client_name].items.push(e);
     });
     xrows.forEach(x=>{
       if(!byEmp[x.employee_id])byEmp[x.employee_id]={name:x.employee_name,initials:x.employee_initials,clients:{},expenses:0};
@@ -677,11 +678,18 @@ async function renderReport(){
       const emp=byEmp[eid];
       const totH=Object.values(emp.clients).reduce((s,c)=>s+c.hours,0);
       const totA=Object.values(emp.clients).reduce((s,c)=>s+c.subtotal,0);
-      html+=`<div class="client-block"><div class="client-hdr"><div><div class="client-name">${emp.name} <span style="font-size:13px;color:#888;font-weight:400">(${emp.initials})</span></div><div class="client-meta">${totH.toFixed(2)} hrs · $${totA.toFixed(2)}${emp.expenses?` · $${emp.expenses.toFixed(2)} expenses`:''}</div></div></div>
-        <table class="tbl"><thead><tr><th>Client</th><th style="width:80px;text-align:right">Hours</th><th style="width:90px;text-align:right">Amount</th></tr></thead>
-        <tbody>${Object.keys(emp.clients).sort().map(cname=>`<tr><td>${esc(cname)}</td><td style="text-align:right">${emp.clients[cname].hours.toFixed(2)}</td><td style="text-align:right">$${emp.clients[cname].subtotal.toFixed(2)}</td></tr>`).join('')}</tbody>
-        <tfoot><tr class="tbl-foot"><td style="color:#888">Total</td><td style="text-align:right">${totH.toFixed(2)}</td><td style="text-align:right">$${totA.toFixed(2)}</td></tr></tfoot>
-        </table></div>`;
+      html+=`<div class="client-block"><div class="client-hdr"><div><div class="client-name">${emp.name} <span style="font-size:13px;color:#888;font-weight:400">(${emp.initials})</span></div><div class="client-meta">${totH.toFixed(2)} hrs · $${totA.toFixed(2)}${emp.expenses?` · $${emp.expenses.toFixed(2)} expenses`:''}</div></div></div>`;
+      Object.keys(emp.clients).sort().forEach(cname=>{
+        const c=emp.clients[cname];
+        const items=c.items.slice().sort((a,b)=>a.date.localeCompare(b.date));
+        html+=`<div style="margin-bottom:14px">
+          <div style="font-size:13px;font-weight:600;margin-bottom:6px">${esc(cname)} <span style="font-weight:400;color:#888">— ${c.hours.toFixed(2)} hrs · $${c.subtotal.toFixed(2)}</span></div>
+          <table class="tbl"><thead><tr><th style="width:90px">Date</th><th>Description</th><th style="width:55px;text-align:right">Hours</th><th style="width:75px;text-align:right">Amount</th></tr></thead>
+          <tbody>${items.map(e=>`<tr><td>${e.date}</td><td style="font-size:12px">${esc(e.description)}</td><td style="text-align:right">${parseFloat(e.hours).toFixed(2)}</td><td style="text-align:right">$${parseFloat(e.subtotal).toFixed(2)}</td></tr>`).join('')}</tbody>
+          </table>
+        </div>`;
+      });
+      html+=`</div>`;
     });
     wrap.innerHTML=html;
   }catch(e){wrap.innerHTML='<div class="empty">Error: '+e.message+'</div>'}
@@ -689,14 +697,15 @@ async function renderReport(){
 
 async function downloadReport(cid){
   const cycle=CYCLES.find(c=>c.id===cid);
-  const rows=await db(`entries?cycle_id=eq.${cid}&select=*&order=employee_name,date`);
+  const rows=await db(`entries?cycle_id=eq.${cid}&select=*&order=employee_name,client_name,date`);
   const xrows=await db(`expenses?cycle_id=eq.${cid}&select=*&order=employee_name,date`);
   const byEmp={};
   rows.forEach(e=>{
     if(!byEmp[e.employee_id])byEmp[e.employee_id]={name:e.employee_name,initials:e.employee_initials,clients:{},expenses:0};
-    if(!byEmp[e.employee_id].clients[e.client_name])byEmp[e.employee_id].clients[e.client_name]={hours:0,subtotal:0};
+    if(!byEmp[e.employee_id].clients[e.client_name])byEmp[e.employee_id].clients[e.client_name]={hours:0,subtotal:0,items:[]};
     byEmp[e.employee_id].clients[e.client_name].hours+=parseFloat(e.hours);
     byEmp[e.employee_id].clients[e.client_name].subtotal+=parseFloat(e.subtotal);
+    byEmp[e.employee_id].clients[e.client_name].items.push(e);
   });
   xrows.forEach(x=>{
     if(!byEmp[x.employee_id])byEmp[x.employee_id]={name:x.employee_name,initials:x.employee_initials,clients:{},expenses:0};
@@ -711,20 +720,23 @@ async function downloadReport(cid){
     const emp=byEmp[eid];
     const totH=Object.values(emp.clients).reduce((s,c)=>s+c.hours,0);
     const totA=Object.values(emp.clients).reduce((s,c)=>s+c.subtotal,0);
-    empSections+=`<p style="font-size:13pt;font-weight:bold;font-family:Calibri,sans-serif;margin:16pt 0 4pt 0">${emp.name} (${emp.initials})${emp.expenses?` — Expenses: $${emp.expenses.toFixed(2)}`:''}</p>
-    <table style="border-collapse:collapse;width:400pt"><thead><tr style="background:#1a6b6b">
-      <th style="border:1px solid #1a6b6b;padding:5px 8px;font-size:11pt;color:#fff;text-align:left;font-family:Calibri,sans-serif">Client</th>
-      <th style="border:1px solid #1a6b6b;padding:5px 8px;font-size:11pt;color:#fff;text-align:right;width:80pt;font-family:Calibri,sans-serif">Hours</th>
-      <th style="border:1px solid #1a6b6b;padding:5px 8px;font-size:11pt;color:#fff;text-align:right;width:90pt;font-family:Calibri,sans-serif">Amount</th>
-    </tr></thead><tbody>${Object.keys(emp.clients).sort().map(cname=>`
-      <tr><td style="border:1px solid #ccc;padding:5px 8px;font-size:11pt;font-family:Calibri,sans-serif">${cname}</td>
-      <td style="border:1px solid #ccc;padding:5px 8px;font-size:11pt;text-align:right;font-family:Calibri,sans-serif">${emp.clients[cname].hours.toFixed(2)}</td>
-      <td style="border:1px solid #ccc;padding:5px 8px;font-size:11pt;text-align:right;font-family:Calibri,sans-serif">$${emp.clients[cname].subtotal.toFixed(2)}</td></tr>`).join('')}
-    </tbody><tfoot><tr style="background:#f0f0f0">
-      <td style="border:1px solid #ccc;padding:5px 8px;font-size:11pt;font-weight:bold;font-family:Calibri,sans-serif">Total</td>
-      <td style="border:1px solid #ccc;padding:5px 8px;font-size:11pt;font-weight:bold;text-align:right;font-family:Calibri,sans-serif">${totH.toFixed(2)}</td>
-      <td style="border:1px solid #ccc;padding:5px 8px;font-size:11pt;font-weight:bold;text-align:right;font-family:Calibri,sans-serif">$${totA.toFixed(2)}</td>
-    </tr></tfoot></table>`;
+    empSections+=`<p style="font-size:13pt;font-weight:bold;font-family:Calibri,sans-serif;margin:16pt 0 4pt 0">${emp.name} (${emp.initials})${emp.expenses?` — Expenses: $${emp.expenses.toFixed(2)}`:''}</p>`;
+    Object.keys(emp.clients).sort().forEach(cname=>{
+      const c=emp.clients[cname];
+      const items=c.items.slice().sort((a,b)=>a.date.localeCompare(b.date));
+      empSections+=`<p style="font-size:11.5pt;font-weight:bold;font-family:Calibri,sans-serif;margin:10pt 0 4pt 0">${cname} <span style="font-weight:normal;color:#888">— ${c.hours.toFixed(2)} hrs · $${c.subtotal.toFixed(2)}</span></p>
+      <table style="border-collapse:collapse;width:450pt"><thead><tr style="background:#1a6b6b">
+        <th style="border:1px solid #1a6b6b;padding:5px 8px;font-size:11pt;color:#fff;text-align:left;width:70pt;font-family:Calibri,sans-serif">Date</th>
+        <th style="border:1px solid #1a6b6b;padding:5px 8px;font-size:11pt;color:#fff;text-align:left;font-family:Calibri,sans-serif">Description</th>
+        <th style="border:1px solid #1a6b6b;padding:5px 8px;font-size:11pt;color:#fff;text-align:right;width:55pt;font-family:Calibri,sans-serif">Hours</th>
+        <th style="border:1px solid #1a6b6b;padding:5px 8px;font-size:11pt;color:#fff;text-align:right;width:75pt;font-family:Calibri,sans-serif">Amount</th>
+      </tr></thead><tbody>${items.map(e=>`
+        <tr><td style="border:1px solid #ccc;padding:5px 8px;font-size:11pt;font-family:Calibri,sans-serif">${e.date}</td>
+        <td style="border:1px solid #ccc;padding:5px 8px;font-size:11pt;font-family:Calibri,sans-serif">${esc(e.description)}</td>
+        <td style="border:1px solid #ccc;padding:5px 8px;font-size:11pt;text-align:right;font-family:Calibri,sans-serif">${parseFloat(e.hours).toFixed(2)}</td>
+        <td style="border:1px solid #ccc;padding:5px 8px;font-size:11pt;text-align:right;font-family:Calibri,sans-serif">$${parseFloat(e.subtotal).toFixed(2)}</td></tr>`).join('')}
+      </tbody></table>`;
+    });
   });
   const html=`<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"><meta name=ProgId content=Word.Document><!--[if gte mso 9]><xml><w:WordDocument><w:View>Print</w:View></w:WordDocument></xml><![endif]--><style>body{font-family:Calibri,sans-serif;margin:1in}p{margin:0}</style></head><body>
   <p style="font-size:14pt;font-weight:bold;font-family:Calibri,sans-serif">Pinnacle Advisory Group</p>
