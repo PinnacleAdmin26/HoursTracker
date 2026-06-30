@@ -596,7 +596,21 @@ async function renderCycleTab(){
   const pw=document.getElementById('pastCycleList');
   if(!past.length){pw.innerHTML='<div class="empty">No past cycles yet.</div>';return}
   const pastRows=await Promise.all(past.map(async c=>{let cnt=0,amt=0;try{const rows=await db(`entries?cycle_id=eq.${c.id}&select=subtotal`);cnt=rows.length;amt=rows.reduce((s,e)=>s+parseFloat(e.subtotal),0)}catch(e){}return{...c,cnt,amt}}));
-  pw.innerHTML=pastRows.map(c=>`<div class="client-block" style="display:flex;align-items:center;justify-content:space-between"><div><div style="font-weight:600;font-size:14px">${c.label}</div><div style="font-size:12px;color:#888;margin-top:2px">${c.cnt} entries · $${c.amt.toFixed(2)} · Closed ${c.closed_at?new Date(c.closed_at).toLocaleDateString():''}</div></div><span class="badge badge-closed">&#128274; Closed</span></div>`).join('');
+  pw.innerHTML=pastRows.map(c=>`<div class="client-block" style="display:flex;align-items:center;justify-content:space-between"><div><div style="font-weight:600;font-size:14px">${c.label}</div><div style="font-size:12px;color:#888;margin-top:2px">${c.cnt} entries · $${c.amt.toFixed(2)} · Closed ${c.closed_at?new Date(c.closed_at).toLocaleDateString():''}</div></div><div style="display:flex;align-items:center;gap:10px"><span class="badge badge-closed">&#128274; Closed</span><button class="sm" onclick="showReopenModal('${c.id}','${esc(c.label)}')">Reopen</button></div></div>`).join('');
+}
+
+function showReopenModal(cid,clabel){
+  document.getElementById('modalTitle').textContent='Reopen '+clabel+'?';
+  document.getElementById('modalMsg').textContent=`This unlocks ${clabel} so employees can add or edit entries again. You'll need to manually re-close it when you're done making corrections.`;
+  document.getElementById('modalOk').onclick=()=>doReopen(cid);
+  document.getElementById('confirmModal').classList.add('open');
+}
+
+async function doReopen(cid){
+  try{
+    await db(`billing_cycles?id=eq.${cid}`,{method:'PATCH',body:{closed:false,closed_at:null},prefer:'return=minimal'});
+    await loadCycles();hideModal();populateAdminFilters();renderCycleTab();renderAdmin();populateReportCycles();
+  }catch(e){alert('Error reopening cycle: '+e.message)}
 }
 
 function showCloseModal(){
